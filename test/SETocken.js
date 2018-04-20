@@ -30,4 +30,29 @@ var tockenInstance;
 			assert.equal(adminBalance.toNumber(), 1000000, 'it allocates the initial supply to the admin')
 		});
 	});
+
+	it('transfer Tocken ownership', ()=> {
+		return SETocken.deployed().then((instance) => {
+			tockenInstance = instance;
+			return tockenInstance.trasfer.call(accounts[1],9999999999999999999);
+		}).then(assert.fail).catch((error) => {
+			assert(error.message.indexOf('revert') >= 0, 'error message must contain revert');
+			return tockenInstance.trasfer.call(accounts[1],250000, {from: accounts[0]});
+		}).then((success) => {
+			assert.equal(success, true, 'it returns true');
+			return tockenInstance.trasfer(accounts[1],250000, {from: accounts[0]});
+		}).then((receipt) => {
+			assert.equal(receipt.logs.length, 1, 'triggers one event');
+			assert.equal(receipt.logs[0].event, 'Transfer', 'should be the "Transfer" event');
+			assert.equal(receipt.logs[0].args._from, accounts[0], 'logs the account the tocken are trasfered from');
+			assert.equal(receipt.logs[0].args._to, accounts[1], 'logs the account the tocken are trasfered to');
+			assert.equal(receipt.logs[0].args._value, 250000, 'logs the trasfer amount');
+			return tockenInstance.balanceOf(accounts[1]);
+		}).then((balance) =>{
+			assert.equal(balance.toNumber(), 250000, 'adds the amount of the receiving account');
+			return tockenInstance.balanceOf(accounts[0]);
+		}).then((balance) =>{
+			assert.equal(balance.toNumber(), 750000, 'deducts the amount from the sending account');
+		})
+	});
 });

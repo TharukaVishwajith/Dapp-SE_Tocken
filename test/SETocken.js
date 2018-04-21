@@ -55,4 +55,23 @@ var tockenInstance;
 			assert.equal(balance.toNumber(), 750000, 'deducts the amount from the sending account');
 		})
 	});
+
+	it('approves tocken for delegated transfer', ()=> {
+		return SETocken.deployed().then((instance) => {
+			tockenInstance = instance;
+			return tockenInstance.approve.call(accounts[1],100);
+		}).then((success)=> {
+			assert.equal(success, true, 'it returns true');
+			return tockenInstance.approve(accounts[1], 100, { from: accounts[0]});
+		}).then((receipt)=> {
+			assert.equal(receipt.logs.length, 1, 'triggers one event');
+			assert.equal(receipt.logs[0].event, 'Approval', 'should be the "Approval" event');
+			assert.equal(receipt.logs[0].args._owner, accounts[0], 'logs the account the tocken are authorozed by');
+			assert.equal(receipt.logs[0].args._spender, accounts[1], 'logs the account the tocken are authorozed to');
+			assert.equal(receipt.logs[0].args._value, 100, 'logs the trasfer amount');
+			return tockenInstance.allowance(accounts[0], accounts[1]);
+		}).then((allowace)=> {
+			assert.equal(allowace.toNumber(), 100, 'store the allowace for delegated transfer');
+		})
+	});
 });

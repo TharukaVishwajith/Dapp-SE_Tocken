@@ -27,7 +27,7 @@ contract SETocken {
   	totalSupply = _initialSupply;
   }
 
-  function trasfer(address _to, uint256 _value) public returns(bool success){
+  function transfer(address _to, uint256 _value) public returns(bool success){
 
   	require(balanceOf[msg.sender] >= _value);
 
@@ -44,6 +44,20 @@ contract SETocken {
     allowance[msg.sender][_spender] = _value;
     
     emit Approval(msg.sender, _spender, _value);
+    return true;
+  }
+
+  function transferFrom(address _from, address _to, uint256 _value) public returns(bool success){
+    require(balanceOf[_from] >=_value );
+    require(allowance[_from][msg.sender] >= _value);
+
+    balanceOf[_from] -= _value;
+    balanceOf[_to] += _value;
+
+    allowance[_from][msg.sender] -= _value;
+
+    emit Transfer(_from, _to, _value);
+
     return true;
   }
 }
